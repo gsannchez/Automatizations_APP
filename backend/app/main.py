@@ -10,8 +10,15 @@ logging.basicConfig(level=logging.DEBUG)
 app = FastAPI(title="Auto Video Maker Backend")
 
 @app.on_event("startup")
-def on_startup():
-    init_db()
+async def on_startup():
+    await init_db()
+    from .core.scheduler import start_scheduler
+    start_scheduler()
+
+@app.on_event("shutdown")
+def on_shutdown():
+    from .core.scheduler import stop_scheduler
+    stop_scheduler()
 
 @app.get("/")
 def root():
