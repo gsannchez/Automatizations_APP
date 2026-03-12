@@ -2,7 +2,6 @@
   "name": "auto-video-frontend",
   "version": "0.0.0",
   "main": "main.js",
-
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -46,6 +45,7 @@
     "@types/express": "^5.0.1",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^20.17.19",
+    "autoprefixer": "^10.4.27",
     "electron": "^39.2.2",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.0",
@@ -53,6 +53,8 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.1",
     "typescript": "~5.9.2"
   }
 }

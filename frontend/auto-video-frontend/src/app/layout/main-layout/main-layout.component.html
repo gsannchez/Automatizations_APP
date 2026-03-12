@@ -1,0 +1,41 @@
+<div class="main-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo-section">
+      <span class="logo-emoji">🎬</span>
+      <span class="logo-text">AutoVideo<span>Maker</span></span>
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="icon">📊</span> Dashboard
+      </a>
+      <a routerLink="/library" routerLinkActive="active" class="nav-item">
+        <span class="icon">📂</span> My Library
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="avatar">👤</div>
+        <div class="user-meta">
+          <span class="email">User Account</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Content Area -->
+  <div class="content-wrapper">
+    <header class="top-bar">
+      <div class="page-title">
+        Dashboard
+      </div>
+      <button class="btn-primary">+ New Video</button>
+    </header>
+
+    <main class="main-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

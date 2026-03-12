@@ -4,6 +4,15 @@ from celery import Celery
 # Configuración de Redis (asumiendo localhost por defecto)
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
+# Load all models for SQLAlchemy registry
+from app.models.user import User
+from app.models.channel import Channel
+from app.models.template import Template
+from app.models.generated_video import GeneratedVideo
+from app.models.video_job import VideoJob
+from app.models.asset import Asset
+
+
 celery_app = Celery(
     "auto_video_maker",
     broker=REDIS_URL,
