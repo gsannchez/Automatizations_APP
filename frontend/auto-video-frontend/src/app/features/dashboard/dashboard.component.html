@@ -1,0 +1,32 @@
+<div class="dashboard-container">
+  <!-- Welcome Header -->
+  <header class="welcome-header">
+    <div>
+      <h1>Welcome, {{ user?.email || 'User' }}</h1>
+      <p class="subtitle">Managing your automated video production</p>
+    </div>
+    
+    <div class="user-info">
+      <span class="plan-badge">{{ user?.plan || 'FREE' }} PLAN</span>
+      <button (click)="logout()" class="btn-logout">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Stats Grid -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <label>Minutes Used</label>
+      <div class="value">{{ user?.minutes_used || 0 }} min</div>
+    </div>
+    <div class="stat-card">
+      <label>Plan Status</label>
+      <div class="value">Active</div>
+      <div class="status">● Linked to billing</div>
+    </div>
+  </div>
+
+  <!-- Video List Section -->
+  <section class="content-section">
+    <app-video-list></app-video-list>
+  </section>
+</div>

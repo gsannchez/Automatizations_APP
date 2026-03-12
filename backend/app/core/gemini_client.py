@@ -21,26 +21,32 @@ def generate_gemini_prompt(prompt: str) -> str:
     """
 
     try:
-        model = genai.GenerativeModel(
-            MODEL_NAME,
-            generation_config={
-                # Velocidad y coherencia
-                "temperature": 0.7,
-                "top_p": 0.95,
-
-                # Lo más importante:
-                # Gemini ahora MANTIENE JSON puro
-                "response_mime_type": "application/json"
+        # MOCK RESPONSE PARA EVITAR RATE LIMIT DE GEMINI DURANTE PRUEBAS
+        import time
+        time.sleep(2) # Simular latencia de red
+        
+        mock_response = """
+        {
+          "title": "La Revolución de la IA",
+          "description": "Una mirada rápida al futuro de la inteligencia artificial.",
+          "scenes": [
+            {
+              "type": "intro",
+              "text": "Bienvenidos al futuro. La IA está cambiando todo.",
+              "duration": 5,
+              "image_prompt": "Futuristic glowing brain network digital art style"
+            },
+            {
+              "type": "main",
+              "text": "Desde automatización de tareas hasta asistencia médica, sus usos son infinitos.",
+              "duration": 5,
+              "image_prompt": "Robot doctor shaking hands with a human patient"
             }
-        )
-
-        response = model.generate_content(prompt)
-
-        # Limpieza básica (por seguridad)
-        if not response or not response.text:
-            raise RuntimeError("Gemini devolvió una respuesta vacía.")
-
-        return response.text.strip()
+          ]
+        }
+        """
+        
+        return mock_response.strip()
 
     except Exception as e:
         raise RuntimeError(f"Error al generar contenido con Gemini: {e}")
