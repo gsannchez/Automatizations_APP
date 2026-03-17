@@ -1,86 +1,86 @@
-# API Reference
+# Referencia de la API
 
-All API requests must be made to the base URL: `http://localhost:8000/api/v1`.
+Todas las peticiones a la API deben realizarse a la URL base: `http://localhost:8000/api/v1`.
 
-## Authentication Endpoints
+## Endpoints de Autenticación
 
 ### POST `/auth/register`
 
-- **Purpose**: Create a new user account.
-- **Input**: `email`, `password`.
-- **Output**: `access_token`, `refresh_token`.
-- **Authentication**: None.
+- **Propósito**: Crear una nueva cuenta de usuario.
+- **Entrada**: `email`, `password`.
+- **Salida**: `access_token`, `refresh_token`.
+- **Autenticación**: Ninguna.
 
 ### POST `/auth/login`
 
-- **Purpose**: Authenticate an existing user.
-- **Input**: `email`, `password`.
-- **Output**: `access_token`, `refresh_token`.
-- **Authentication**: None (Rate-limited: 5 requests/min).
+- **Propósito**: Autenticar a un usuario existente.
+- **Entrada**: `email`, `password`.
+- **Salida**: `access_token`, `refresh_token`.
+- **Autenticación**: Ninguna (Límite de peticiones: 5 peticiones/min).
 
 ### POST `/auth/refresh`
 
-- **Purpose**: Obtain a new access token using a refresh token.
-- **Input**: `refresh_token`.
-- **Output**: `access_token`.
-- **Authentication**: None (requires a valid refresh token in body).
+- **Propósito**: Obtener un nuevo token de acceso usando un token de actualización.
+- **Entrada**: `refresh_token`.
+- **Salida**: `access_token`.
+- **Autenticación**: Ninguna (requiere un token de actualización válido en el cuerpo de la petición).
 
 ### GET `/auth/me`
 
-- **Purpose**: Retrieve the profile of the currently logged-in user.
-- **Input**: None.
-- **Output**: `id`, `email`, `plan`, `created_at`.
-- **Authentication**: Required (Bearer JWT).
+- **Propósito**: Obtener el perfil del usuario que ha iniciado sesión actualmente.
+- **Entrada**: Ninguna.
+- **Salida**: `id`, `email`, `plan`, `created_at`.
+- **Autenticación**: Requerida (Bearer JWT).
 
 ---
 
-## Video Endpoints
+## Endpoints de Video
 
 ### GET `/videos`
 
-- **Purpose**: List all videos owned by the authenticated user.
-- **Input**: `page` (default 1), `limit` (default 20).
-- **Output**: Paginated list of videos (`items`, `total`, `page`, `limit`).
-- **Authentication**: Required (Bearer JWT).
+- **Propósito**: Listar todos los videos que pertenecen al usuario autenticado.
+- **Entrada**: `page` (por defecto 1), `limit` (por defecto 20).
+- **Salida**: Lista paginada de videos (`items`, `total`, `page`, `limit`).
+- **Autenticación**: Requerida (Bearer JWT).
 
 ### POST `/videos`
 
-- **Purpose**: Initialize a new video record.
-- **Input**: `template_id`, `title`, `platform`, `topic`.
-- **Output**: Created video object.
-- **Authentication**: Required (Bearer JWT).
+- **Propósito**: Inicializar un nuevo registro de video.
+- **Entrada**: `template_id`, `title`, `platform`, `topic`.
+- **Salida**: Objeto del video creado.
+- **Autenticación**: Requerida (Bearer JWT).
 
 ### GET `/videos/{id}`
 
-- **Purpose**: Retrieve details of a specific video.
-- **Input**: `id` (UUID).
-- **Output**: Video object.
-- **Authentication**: Required (Bearer JWT). Returns 404 if not owned.
+- **Propósito**: Obtener los detalles de un video específico.
+- **Entrada**: `id` (UUID).
+- **Salida**: Objeto del video.
+- **Autenticación**: Requerida (Bearer JWT). Retorna 404 si no es el propietario.
 
 ### GET `/videos/{id}/status`
 
-- **Purpose**: Lightweight endpoint for polling the current generation status.
-- **Input**: `id` (UUID).
-- **Output**: `status`, `error_message`, `error_step`.
-- **Authentication**: Required (Bearer JWT).
+- **Propósito**: Endpoint ligero para consultar el estado actual de generación.
+- **Entrada**: `id` (UUID).
+- **Salida**: `status`, `error_message`, `error_step`.
+- **Autenticación**: Requerida (Bearer JWT).
 
 ### GET `/videos/{id}/download`
 
-- **Purpose**: Get a secure download URL for a completed video.
-- **Input**: `id` (UUID).
-- **Output**: `download_url`.
-- **Authentication**: Required (Bearer JWT). Returns 409 if status is not `DONE`.
+- **Propósito**: Obtener una URL segura de descarga para un video completado.
+- **Entrada**: `id` (UUID).
+- **Salida**: `download_url`.
+- **Autenticación**: Requerida (Bearer JWT). Retorna 409 si el estado no es `DONE`.
 
 ### DELETE `/videos/{id}`
 
-- **Purpose**: Soft-delete a video.
-- **Input**: `id` (UUID).
-- **Output**: `{"deleted": true}`.
-- **Authentication**: Required (Bearer JWT).
+- **Propósito**: Eliminar lógicamente (soft-delete) un video.
+- **Entrada**: `id` (UUID).
+- **Salida**: `{"deleted": true}`.
+- **Autenticación**: Requerida (Bearer JWT).
 
 ### POST `/videos/{id}/generate`
 
-- **Purpose**: Start the asynchronous generation pipeline for a video.
-- **Input**: `id` (UUID), optional `music_file`.
-- **Output**: Confirmation message.
-- **Authentication**: Required (Bearer JWT).
+- **Propósito**: Iniciar la tubería asincrónica de generación para un video.
+- **Entrada**: `id` (UUID), opcional `music_file`.
+- **Salida**: Mensaje de confirmación.
+- **Autenticación**: Requerida (Bearer JWT).

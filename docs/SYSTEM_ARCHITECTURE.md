@@ -1,72 +1,72 @@
-# System Architecture
+# Arquitectura del Sistema
 
-## Overview
+## Descripción General
 
-The Auto Video Maker is a distributed system designed to automate the process of video creation. It converts text scripts or templates into fully rendered videos using AI for images, voice synthesis, and FFmpeg for composition.
+Auto Video Maker es un sistema distribuido diseñado para automatizar el proceso de creación de video. Convierte guiones de texto o plantillas en videos completamente renderizados utilizando IA para imágenes, síntesis de voz y FFmpeg para la composición.
 
-## Architecture Diagram
+## Diagrama de Arquitectura
 
 ```mermaid
 graph TD
-    User((User))
-    Frontend[Angular Frontend]
-    Backend[FastAPI Backend]
+    User((Usuario))
+    Frontend[Frontend en Angular]
+    Backend[Backend en FastAPI]
     DB[(PostgreSQL)]
-    Queue[(Redis Queue)]
-    Worker[Celery Worker]
-    Generator[Video Generator Engine]
-    Storage[(Local Storage)]
+    Queue[(Cola de Redis)]
+    Worker[Worker de Celery]
+    Generator[Motor de Generación de Video]
+    Storage[(Almacenamiento Local)]
 
     User <--> Frontend
     Frontend <--> Backend
     Backend <--> DB
-    Backend -- Push Task --> Queue
-    Queue -- Pull Task --> Worker
+    Backend -- Empuja Tarea --> Queue
+    Queue -- Extrae Tarea --> Worker
     Worker <--> Generator
     Generator <--> Storage
-    Worker -- Update Status --> DB
+    Worker -- Actualiza Estado --> DB
 ```
 
-## Component Responsibilities
+## Responsabilidades de los Componentes
 
-### Angular Frontend
+### Frontend en Angular
 
-- Provides the user interface for managing templates and videos.
-- Handles user authentication and session management.
-- Polls the backend for video generation status.
-- Displays progress updates to the user.
+- Proporciona la interfaz de usuario para gestionar plantillas y videos.
+- Gestiona la autenticación de usuarios y la sesión.
+- Realiza sondeos (polls) al backend para conocer el estado de la generación del video.
+- Muestra actualizaciones de progreso al usuario.
 
-### FastAPI Backend
+### Backend en FastAPI
 
-- Acts as the central API gateway.
-- Handles request validation, authentication (JWT), and authorization.
-- Manages the database state (PostgreSQL).
-- Orchestrates video generation by pushing jobs to the Redis queue.
-- Serves video downloads and metadata.
+- Actúa como la puerta de enlace central de la API.
+- Gestiona la validación de peticiones, la autenticación (JWT) y la autorización.
+- Gestiona el estado de la base de datos (PostgreSQL).
+- Orquesta la generación de video enviando trabajos a la cola de Redis.
+- Sirve las descargas de video y los metadatos.
 
-### Celery Worker
+### Worker de Celery
 
-- Processes long-running video generation tasks asynchronously.
-- Manages the video pipeline execution (scripting, media generation, composition).
-- Handles retries and error recovery.
-- Updates the `VideoJob` status in the database at each step.
+- Procesa asíncronamente las tareas de generación de video de larga duración.
+- Gestiona la ejecución de la tubería de video (guionizado, generación de medios, composición).
+- Gestiona los reintentos y la recuperación de errores.
+- Actualiza el estado del `VideoJob` en la base de datos en cada paso.
 
-### PostgreSQL Database
+### Base de Datos PostgreSQL
 
-- Stores persistent data: Users, Templates, GeneratedVideos, VideoJobs, and Assets.
-- Maintains the state of the video generation pipeline.
+- Almacena datos persistentes: Usuarios (Users), Plantillas (Templates), Videos Generados (GeneratedVideos), Trabajos de Video (VideoJobs) y Activos (Assets).
+- Mantiene el estado de la tubería de generación de video.
 
-### Redis Queue
+### Cola de Redis
 
-- Acts as the message broker between the FastAPI backend and Celery workers.
+- Actúa como intermediario de mensajes (message broker) entre el backend FastAPI y los workers de Celery.
 
-### Video Generator Engine
+### Motor de Generación de Video
 
-- The core logic for creating media.
-- Integrates with external APIs (AI image generators, TTS services).
-- Uses FFmpeg for final video encoding and composition.
+- La lógica central para crear medios.
+- Se integra con APIs externas (generadores de imágenes por IA, servicios de TTS).
+- Utiliza FFmpeg para la codificación y composición final del video.
 
-### Local Storage
+### Almacenamiento Local
 
-- Stores intermediate assets (images, audio files) and the final rendered videos.
-- Organized by user and video ID to ensure isolation.
+- Almacena activos intermedios (imágenes, archivos de audio) y los videos renderizados finales.
+- Organizado por usuario e ID de video para asegurar el aislamiento.

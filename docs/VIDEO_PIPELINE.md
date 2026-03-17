@@ -1,48 +1,48 @@
-# Video Pipeline
+# Tubería de Video (Video Pipeline)
 
-## Overview
+## Descripción General
 
-The video generation process is orchestrated as a series of discrete, idempotent steps executed by Celery workers. This ensures reliability and allows the system to recover from failures without restarting the entire process.
+El proceso de generación de video se orquesta como una serie de pasos discretos e idempotentes ejecutados por los workers de Celery. Esto garantiza la fiabilidad y permite al sistema recuperarse de fallos sin reiniciar todo el proceso.
 
-## Pipeline Steps
+## Pasos de la Tubería
 
-The pipeline follows a frozen order:
+La tubería sigue un orden estricto:
 
-1.  **QUEUED**: Initial state when the job is added to the Redis queue.
-2.  **SCRIPTING**: Generates the text script and scenes using AI.
-3.  **SCRIPT_VALIDATED**: Ensures the generated script meets quality and safety standards.
-4.  **IMAGE_GENERATION**: Creates visual assets for each scene using AI image generators.
-5.  **VOICE_SYNTHESIS**: Generates audio narration for each scene using Text-to-Speech (TTS).
-6.  **MEDIA_COMPOSITION**: Combines visual and audio assets into a raw video stream.
-7.  **ENCODING**: Finalizes the video file using FFmpeg (bitrate optimization, metadata).
-8.  **UPLOADING**: Moves the final file to the designated storage (Local or Cloud).
-9.  **DONE**: The video is ready for download and the status is finalized.
+1.  **QUEUED**: Estado inicial cuando el trabajo se añade a la cola de Redis.
+2.  **SCRIPTING**: Genera el guion de texto y las escenas utilizando IA.
+3.  **SCRIPT_VALIDATED**: Asegura que el guion generado cumpla con los estándares de calidad y seguridad.
+4.  **IMAGE_GENERATION**: Crea activos visuales para cada escena utilizando generadores de imágenes por IA.
+5.  **VOICE_SYNTHESIS**: Genera la narración de audio para cada escena utilizando Texto-a-Voz (TTS).
+6.  **MEDIA_COMPOSITION**: Combina los activos visuales y de audio en un flujo (stream) de video en bruto.
+7.  **ENCODING**: Finaliza el archivo de video utilizando FFmpeg (optimización de la tasa de bits, metadatos).
+8.  **UPLOADING**: Mueve el archivo final al almacenamiento designado (Local o en la Nube).
+9.  **DONE**: El video está listo para su descarga y el estado finalizado.
 
-## Reliable Orchestration
+## Orquestación Fiable
 
-### VideoJob Tracking
+### Seguimiento del VideoJob
 
-Each step execution is logged in the `VideoJob` table. This record includes:
+Cada ejecución de un paso se registra en la tabla `VideoJob`. Este registro incluye:
 
-- Step name.
-- Start and end timestamps.
-- Success/Failure status.
-- Error messages (if applicable).
+- Nombre del paso.
+- Marcas de tiempo (timestamps) de inicio y fin.
+- Estado de Éxito/Fallo.
+- Mensajes de error (si corresponde).
 
-### Idempotency
+### Idempotencia
 
-Before starting a step, the orchestrator checks if that specific step has already been marked as `success` in the `VideoJob` table for the current `video_id`. If it has, the step is skipped. This allows the workflow to be re-run safely multiple times.
+Antes de iniciar un paso, el orquestador comprueba si ese paso específico ya ha sido marcado como éxito (`success`) en la tabla `VideoJob` para el `video_id` actual. Si es así, se omite el paso. Esto permite que el flujo de trabajo se vuelva a ejecutar de forma segura varias veces.
 
-### Crash Recovery
+### Recuperación de Fallos (Crash Recovery)
 
-If a worker crashes mid-task:
+Si un worker falla en mitad de una tarea:
 
-1.  The `VideoJob` entry for the active step remains without an `ended_at` timestamp.
-2.  The `GeneratedVideo` status remains in the last attempted step.
-3.  Upon restart or retry, the orchestrator uses `get_resume_index()` to find the first uncompleted step and resumes from there.
+1.  La entrada `VideoJob` para el paso activo permanece sin una marca de tiempo de fin (`ended_at`).
+2.  El estado del `GeneratedVideo` permanece en el último paso intentado.
+3.  Al reiniciar o reintentar, el orquestador utiliza `get_resume_index()` para encontrar el primer paso incompleto y se reanuda desde allí.
 
-### Retry Logic
+### Lógica de Reintento
 
-- Failed steps are captured and the `retry_count` of the video is incremented.
-- The system automatically retires the workflow using an exponential backoff (e.g., 60 seconds).
-- A video is marked as `FAILED` only after reaching the maximum number of retries (currently 3).
+- Los pasos fallidos se capturan y se incrementa el contador de reintentos (`retry_count`) del video.
+- El sistema reintenta automáticamente el flujo de trabajo utilizando un retroceso exponencial (ej., 60 segundos).
+- Un video se marca como `FAILED` (fallido) solo después de alcanzar el número máximo de reintentos (actualmente 3).

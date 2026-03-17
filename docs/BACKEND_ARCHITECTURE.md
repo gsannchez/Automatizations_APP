@@ -1,83 +1,83 @@
-# Backend Architecture
+# Arquitectura del Backend
 
-## Overview
+## Descripción General
 
-The backend is built with **FastAPI**, providing a high-performance, asynchronous REST API. It follows a modular structure separated into API routes, core logic, models, schemas, and services.
+El backend está construido con **FastAPI**, proporcionando una API REST asíncrona de alto rendimiento. Sigue una estructura modular separada en rutas de API, lógica principal, modelos, esquemas y servicios.
 
-## Directory Structure
+## Estructura de Directorios
 
 ```text
 backend/app/
-├── api/             # API Routers (v1)
-├── core/            # Core configurations (DB, security, Celery)
-├── models/          # SQLModel database models
-├── schemas/         # Pydantic models for request/response validation
-├── services/        # Business logic and external integrations
-├── utils/           # Helper utilities
-└── main.py          # Application entry point
+├── api/             # Enrutadores de API (v1)
+├── core/            # Configuraciones principales (Base de datos, seguridad, Celery)
+├── models/          # Modelos de base de datos SQLModel
+├── schemas/         # Modelos Pydantic para validación de peticiones/respuestas
+├── services/        # Lógica de negocio e integraciones externas
+├── utils/           # Utilidades auxiliares
+└── main.py          # Punto de entrada de la aplicación
 ```
 
-## Core Components
+## Componentes Principales
 
-### FastAPI Routers
+### Enrutadores FastAPI (Routers)
 
-The API is versioned and split into functional routers:
+La API está versionada y dividida en enrutadores funcionales:
 
-- `auth.py`: Registration, login, and token management.
-- `videos.py`: CRUD operations for generated videos and status tracking.
-- `templates.py`: Management of video templates.
-- `ai.py`: Manual triggers for AI-related tasks.
+- `auth.py`: Registro, inicio de sesión y gestión de tokens.
+- `videos.py`: Operaciones CRUD para videos generados y seguimiento de estado.
+- `templates.py`: Gestión de plantillas de video.
+- `ai.py`: Activadores manuales para tareas relacionadas con IA.
 
-### Authentication System
+### Sistema de Autenticación
 
-Handles security using JWT (JSON Web Tokens):
+Maneja la seguridad utilizando JWT (JSON Web Tokens):
 
-- **Access Tokens**: Short-lived (e.g., 30m) for authorizing requests.
-- **Refresh Tokens**: Long-lived for obtaining new access tokens without re-logging.
-- **Password Hashing**: Uses Passlib with bcrypt.
+- **Tokens de Acceso (Access Tokens)**: De corta duración (ej. 30m) para autorizar peticiones.
+- **Tokens de Actualización (Refresh Tokens)**: De larga duración para obtener nuevos tokens de acceso sin tener que volver a iniciar sesión.
+- **Hash de Contraseñas**: Utiliza Passlib con bcrypt.
 
-### VideoJob Step Tracking
+### Seguimiento de Pasos de VideoJob
 
-The system uses a granular tracking mechanism:
+El sistema utiliza un mecanismo de seguimiento granular:
 
-- Every video generation task is divided into discrete steps (e.g., `SCRIPTING`, `IMAGE_GENERATION`).
-- Each step is recorded in the `VideoJob` table.
-- This allows the system to resume from the last successful step if a worker crashes (**Idempotency**).
+- Cada tarea de generación de video se divide en pasos concretos (ej. `SCRIPTING`, `IMAGE_GENERATION`).
+- Cada paso se registra en la tabla `VideoJob`.
+- Esto permite al sistema reanudar desde el último paso exitoso si un trabajador (worker) falla (**Idempotencia**).
 
-### Database Models
+### Modelos de Base de Datos
 
-#### User
+#### User (Usuario)
 
-- Manages account details, subscription plans, and resource usage.
-- Uses UUID v7 for time-ordered primary keys.
+- Gestiona los detalles de la cuenta, planes de suscripción y uso de recursos.
+- Utiliza UUID v7 para claves primarias ordenadas por tiempo.
 
-#### GeneratedVideo
+#### GeneratedVideo (Video Generado)
 
-- The main entity representing a video being created or already rendered.
-- Linked to a `User` for ownership and a `Template` for structure.
-- Tracks `status` (QUEUED, PROCESSING, DONE, FAILED).
+- La entidad principal que representa un video en proceso de creación o ya renderizado.
+- Enlazado a un `User` por propiedad y a un `Template` por estructura.
+- Rastrea el estado (`status`: QUEUED, PROCESSING, DONE, FAILED).
 
-#### VideoJob
+#### VideoJob (Trabajo de Video)
 
-- Tracks individual execution steps within the generation pipeline for a specific video.
+- Rastrea los pasos de ejecución individuales dentro de la tubería de generación para un video específico.
 
-#### Template
+#### Template (Plantilla)
 
-- Defines the structure and parameters for video generation (e.g., niche, style, duration).
+- Define la estructura y los parámetros para la generación de video (ej. nicho, estilo, duración).
 
-#### Asset
+#### Asset (Activo)
 
-- Represents modular media components (images, audio) generated during the process.
+- Representa componentes multimedia modulares (imágenes, audio) generados durante el proceso.
 
-### Storage Abstraction
+### Abstracción de Almacenamiento
 
-The system uses a `StorageService` to abstract file operations. While currently using **Local Storage**, the implementation is designed to be easily swapped for **Cloud Storage (S3)** in the next phase.
+El sistema utiliza un `StorageService` para abstraer las operaciones de archivos. Aunque actualmente utiliza **Almacenamiento Local**, la implementación está diseñada para ser fácilmente intercambiable por **Almacenamiento en la Nube (S3)** en la siguiente fase.
 
-- Final videos are stored with a unique `storage_key`.
-- Only relative paths are stored in the database.
+- Los videos finales se almacenan con un `storage_key` único.
+- Solo las rutas relativas se almacenan en la base de datos.
 
-### Download Endpoint
+### Endpoint de Descarga
 
-- Provides a secure way to access final video files.
-- Ensures only the owner of the video can generate a download link.
-- Returns a temporary URL or streams the file directly.
+- Proporciona una forma segura de acceder a los archivos de video finales.
+- Asegura que solo el propietario del video pueda generar un enlace de descarga.
+- Devuelve una URL temporal o transmite (streams) el archivo directamente.
