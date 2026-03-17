@@ -1,72 +1,72 @@
-# Testing Guide
+# Guía de Pruebas
 
-This document outlines the procedures for verifying the stability and correctness of the platform.
+Este documento describe los procedimientos para verificar la estabilidad y el correcto funcionamiento de la plataforma.
 
-## Automated Testing
+## Pruebas Automatizadas
 
-Automated tests are located in the `tests/` directory and use the `pytest` framework.
+Las pruebas automatizadas se encuentran en el directorio `tests/` y utilizan el framework `pytest`.
 
-### Running Tests
+### Ejecución de Pruebas
 
-To run all automated tests, follow these steps:
+Para ejecutar todas las pruebas automatizadas, sigue estos pasos:
 
-1.  Navigate to the project root.
-2.  Activate the backend virtual environment.
-3.  Execute the test runner:
+1.  Navega a la raíz del proyecto.
+2.  Activa el entorno virtual del backend.
+3.  Ejecuta el lanzador de pruebas:
 
 ```bash
 cd APP/backend
 pytest ../tests/
 ```
 
-### Test Suite Overview
+### Resumen del Conjunto de Pruebas
 
-- `test_auth_system.py`: Verifies user registration, login, token refresh, and protected route access.
-- `test_video_crud.py`: Ensures videos can be created, listed, retrieved, and deleted.
-- `test_video_pipeline.py`: Tests the full pipeline status transitions from QUEUED to DONE.
-- `test_download_endpoint.py`: Confirms that download links are only available for completed videos.
-- `test_video_ownership.py`: Validates that users cannot access each other's videos.
-- `test_pagination.py`: Tests the limit and offset logic of the video list.
-- `e2e_test_flow.py`: A script that simulates a complete user journey through the platform.
+- `test_auth_system.py`: Verifica el registro de usuarios, inicio de sesión, actualización de tokens y acceso a rutas protegidas.
+- `test_video_crud.py`: Asegura que los videos puedan ser creados, listados, recuperados y eliminados.
+- `test_video_pipeline.py`: Prueba las transiciones de estado completas de la tubería desde QUEUED hasta DONE.
+- `test_download_endpoint.py`: Confirma que los enlaces de descarga solo están disponibles para videos completados.
+- `test_video_ownership.py`: Valida que los usuarios no puedan acceder a los videos de otros usuarios.
+- `test_pagination.py`: Prueba la lógica de límite y desplazamiento (offset) de la lista de videos.
+- `e2e_test_flow.py`: Un script que simula el recorrido completo de un usuario a través de la plataforma.
 
 ---
 
-## Manual Verification Procedures
+## Procedimientos de Verificación Manual
 
-Follow these steps to manually verify the core functionality of the platform.
+Sigue estos pasos para verificar manualmente la funcionalidad principal de la plataforma.
 
-### 1. User Onboarding
+### 1. Incorporación de Usuarios (Onboarding)
 
-1.  Open the application in a browser.
-2.  Click on **Register** and create a new account.
-3.  Verify that you are automatically redirected to the **Login** page or **Dashboard**.
-4.  Logout and log back in to ensure session persistence.
+1.  Abre la aplicación en un navegador.
+2.  Haz clic en **Registrarse** (Register) y crea una nueva cuenta.
+3.  Verifica que eres redirigido automáticamente a la página de **Inicio de sesión** (Login) o al **Panel de Control** (Dashboard).
+4.  Cierra sesión y vuelve a iniciarla para asegurar la persistencia de la sesión.
 
-### 2. Video Creation & Progress
+### 2. Creación y Progreso de Videos
 
-1.  From the Dashboard, click **Create New Video**.
-2.  Fill in the template details and click **Generate**.
-3.  Observe the video list:
-    - The new video should appear with status `QUEUED`.
-    - Within seconds, the status should transition to `PROCESSING` (showing specific pipeline steps).
-    - Verify that the progress bar or status indicators update in real-time.
+1.  Desde el Panel de Control, haz clic en **Crear Nuevo Video** (Create New Video).
+2.  Rellena los detalles de la plantilla y haz clic en **Generar** (Generate).
+3.  Observa la lista de videos:
+    - El nuevo video debería aparecer con el estado `QUEUED`.
+    - En unos segundos, el estado debería cambiar a `PROCESSING` (mostrando los pasos específicos de la tubería).
+    - Verifica que la barra de progreso o los indicadores de estado se actualicen en tiempo real.
 
-### 3. File Verification
+### 3. Verificación de Archivos
 
-1.  Wait until the video status is `DONE`.
-2.  Click the **Download** button.
-3.  Verify that the video file downloads correctly and can be played.
-4.  Navigate to the `APP/backend/videos/` directory and ensure the file exists in the correct user subfolder.
+1.  Espera hasta que el estado del video sea `DONE`.
+2.  Haz clic en el botón de **Descargar** (Download).
+3.  Verifica que el archivo de video se descarga correctamente y se puede reproducir.
+4.  Navega al directorio `APP/backend/videos/` y asegúrate de que el archivo existe en la subcarpeta correcta del usuario.
 
-### 4. Security & Separation
+### 4. Seguridad y Separación
 
-1.  Open an Incognito/Private window.
-2.  Login with a **different** account.
-3.  Verify that the video list is empty or does not show videos from the first account.
-4.  Attempt to manually access a video ID from the first account via the URL (if applicable) and verify it returns a 404 or access denied.
+1.  Abre una ventana de Incógnito/Privada.
+2.  Inicia sesión con una cuenta **diferente**.
+3.  Verifica que la lista de videos esté vacía o no muestre los videos de la primera cuenta.
+4.  Intenta acceder manualmente a un ID de video de la primera cuenta a través de la URL (si corresponde) y verifica que devuelva un error 404 o acceso denegado.
 
-### 5. Pagination
+### 5. Paginación
 
-1.  Create more than 20 videos (or the current page limit).
-2.  Verify that pagination controls appear at the bottom of the list.
-3.  Click through the pages and ensure different videos are displayed.
+1.  Crea más de 20 videos (o el límite actual de la página).
+2.  Verifica que los controles de paginación aparezcan en la parte inferior de la lista.
+3.  Haz clic a través de las páginas y asegúrate de que se muestran diferentes videos.

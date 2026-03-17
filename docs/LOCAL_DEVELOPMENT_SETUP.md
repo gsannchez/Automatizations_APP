@@ -1,81 +1,81 @@
-# Local Development Setup
+# Configuración de Desarrollo Local
 
-Follow these steps to set up and run the Auto Video Maker platform on your local machine.
+Sigue estos pasos para configurar y ejecutar la plataforma Auto Video Maker en tu máquina local.
 
-## Prerequisites
+## Requisitos Previos
 
 - **Python 3.10+**
-- **Node.js 18+** & **npm**
-- **Docker Desktop** (for PostgreSQL and Redis)
-- **FFmpeg** installed and added to your system PATH
+- **Node.js 18+** y **npm**
+- **Docker Desktop** (para PostgreSQL y Redis)
+- **FFmpeg** instalado y añadido al PATH de tu sistema
 
-## Step 1: Start Infrastructure
+## Paso 1: Iniciar la Infraestructura
 
-Use Docker Compose to start the database and the message broker.
+Utiliza Docker Compose para iniciar la base de datos y el intermediario de mensajes (message broker).
 
 ```bash
 cd APP/
 docker-compose up -d
 ```
 
-Verify that `autovideo_postgres` and `autovideo_redis` are running.
+Verifica que `autovideo_postgres` y `autovideo_redis` estén en ejecución.
 
-## Step 2: Backend Setup
+## Paso 2: Configuración del Backend
 
-1.  Navigate to the backend directory:
+1.  Navega hasta el directorio del backend:
     ```bash
     cd APP/backend
     ```
-2.  Create and activate a virtual environment:
+2.  Crea y activa un entorno virtual:
     ```bash
     python -m venv venv
     venv\Scripts\activate  # Windows
     source venv/bin/activate # Linux/Mac
     ```
-3.  Install dependencies:
+3.  Instala las dependencias:
     ```bash
     pip install -r requirements.txt
     ```
-4.  Run migrations:
+4.  Ejecuta las migraciones:
     ```bash
     alembic upgrade head
     ```
-5.  Start the FastAPI server:
+5.  Inicia el servidor FastAPI:
     ```bash
     uvicorn app.main:app --reload
     ```
 
-## Step 3: Start Celery Worker
+## Paso 3: Iniciar el Celery Worker
 
-The worker processes the video generation pipeline.
+El worker procesa la tubería de generación de video.
 
-1.  Open a new terminal in the backend directory and activate the venv.
-2.  Run the worker:
+1.  Abre una nueva terminal en el directorio del backend y activa el entorno virtual (venv).
+2.  Ejecuta el worker:
     ```bash
     celery -A app.core.celery_app worker --pool=solo -l info
     ```
-    _Note: `--pool=solo` is required for Windows compatibility._
+    _Nota: `--pool=solo` es necesario para compatibilidad con Windows._
 
-## Step 4: Frontend Setup
+## Paso 4: Configuración del Frontend
 
-1.  Navigate to the frontend directory:
+1.  Navega hasta el directorio del frontend:
     ```bash
     cd APP/frontend/auto-video-frontend
     ```
-2.  Install dependencies:
+2.  Instala las dependencias:
     ```bash
     npm install
     ```
-3.  Start the Angular development server:
+3.  Inicia el servidor de desarrollo de Angular:
     ```bash
     npm start
     ```
-4.  (Optional) Start Electron:
+4.  (Opcional) Inicia Electron:
     ```bash
     npm run electron
     ```
 
-## Step 5: Verify
+## Paso 5: Verificar
 
-- Backend API: `http://localhost:8000/docs`
-- Frontend UI: `http://localhost:4200`
+- API del Backend: `http://localhost:8000/docs`
+- Interfaz del Frontend: `http://localhost:4200`

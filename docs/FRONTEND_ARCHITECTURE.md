@@ -1,62 +1,62 @@
-# Frontend Architecture
+# Arquitectura del Frontend
 
-## Overview
+## Descripción General
 
-The frontend is an **Angular** application designed for high responsiveness and real-time feedback. It uses a component-based architecture and Angular's built-in dependency injection for modularity.
+El frontend es una aplicación de **Angular** diseñada para una alta capacidad de respuesta y retroalimentación en tiempo real. Utiliza una arquitectura basada en componentes y la inyección de dependencias integrada de Angular para la modularidad.
 
-## Directory Structure
+## Estructura de Directorios
 
 ```text
 src/app/
-├── features/        # Functional modules (Dashboard, Login, Register)
-├── services/        # Centralized business logic and API calls
-├── guards/          # Route protection logic
-├── interceptors/    # HTTP request/response modification
-├── layout/          # Common UI components (Navbar, Sidebar)
-└── app.routes.ts    # Main navigation configuration
+├── features/        # Módulos funcionales (Panel de control, Inicio de sesión, Registro)
+├── services/        # Lógica de negocio centralizada y llamadas a la API
+├── guards/          # Lógica de protección de rutas
+├── interceptors/    # Modificación de peticiones/respuestas HTTP
+├── layout/          # Componentes de interfaz de usuario comunes (Barra de navegación, Barra lateral)
+└── app.routes.ts    # Configuración de navegación principal
 ```
 
-## Core Components
+## Componentes Principales
 
-### Services
+### Servicios
 
-#### AuthService
+#### AuthService (Servicio de Autenticación)
 
-- Handles user registration and authentication.
-- Manages JWT tokens in `localStorage`.
-- Provides an `observable` of the current user's state.
-- Handles token refresh logic automatically.
+- Gestiona el registro y la autenticación de usuarios.
+- Gestiona los tokens JWT en `localStorage`.
+- Proporciona un `observable` del estado del usuario actual.
+- Maneja la lógica de actualización (refresh) del token automáticamente.
 
-#### VideoService
+#### VideoService (Servicio de Video)
 
-- Manages all video-related interactions with the backend.
-- Provides methods for listing videos, creating new ones, and deleting them.
-- Handles the download stream transformation.
+- Gestiona todas las interacciones relacionadas con videos con el backend.
+- Proporciona métodos para listar videos, crear nuevos y eliminarlos.
+- Maneja la transformación del flujo (stream) de descarga.
 
-### Guards
+### Guards (Guardias de Ruta)
 
-#### AuthGuard
+#### AuthGuard (Guardia de Autenticación)
 
-- Protects private routes (e.g., `/dashboard`).
-- Redirects unauthenticated users to the `/login` page.
+- Protege las rutas privadas (ej., `/dashboard`).
+- Redirige a los usuarios no autenticados a la página de `/login`.
 
-### Interceptors
+### Interceptores
 
-#### AuthInterceptor
+#### AuthInterceptor (Interceptor de Autenticación)
 
-- Automatically attaches the JWT `Authorization: Bearer <token>` header to all outgoing requests.
-- Intercepts `401 Unauthorized` responses to trigger token refreshing or session logout.
+- Adjunta automáticamente la cabecera JWT `Authorization: Bearer <token>` a todas las peticiones salientes.
+- Intercepta las respuestas `401 Unauthorized` para activar la actualización (refresh) del token o el cierre de la sesión.
 
-## Polling System
+## Sistema de Sondeo (Polling)
 
-Since video generation is an asynchronous process that can take several minutes, the frontend implements an intelligent polling system:
+Dado que la generación de video es un proceso asíncrono que puede tardar varios minutos, el frontend implementa un sistema de sondeo inteligente:
 
-1. **Trigger**: When a video is in a non-terminal status (e.g., `QUEUED`, `PROCESSING`), a polling mechanism is started.
-2. **Mechanism**: Uses RxJS `timer` or `interval` within the Video List component.
-3. **Frequency**: Typically polls every 5-10 seconds.
-4. **Termination**: Stops polling when the video reaches a terminal status (`DONE` or `FAILED`).
-5. **Efficiency**: Only polls for videos that are currently visible and active.
+1. **Activador (Trigger)**: Cuando un video se encuentra en un estado no terminal (ej., `QUEUED`, `PROCESSING`), se inicia un mecanismo de sondeo.
+2. **Mecanismo**: Utiliza `timer` o `interval` de RxJS dentro del componente Listado de Videos.
+3. **Frecuencia**: Típicamente realiza sondeos cada 5-10 segundos.
+4. **Terminación**: Detiene el sondeo cuando el video alcanza un estado terminal (`DONE` o `FAILED`).
+5. **Eficiencia**: Solo realiza sondeos para los videos que están actualmente visibles y activos.
 
-## Dynamic Progress
+## Progreso Dinámico
 
-Progress is displayed to the user based on the video's current status and the detailed step reported by the `VideoJob` tracking system. This provides a "live" feel to the generation process.
+El progreso se muestra al usuario en función del estado actual del video y del paso detallado reportado por el sistema de seguimiento de `VideoJob`. Esto proporciona una sensación de "en vivo" (live) al proceso de generación.
