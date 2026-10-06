@@ -36,10 +36,12 @@ class TestScriptGenerator(unittest.TestCase):
             language="English"
         )
         
-        template = Template(
-            id=1,
+        # ``model_construct`` skips validation: Template is a table model whose
+        # PK is a UUID and whose ``platform`` has no default, neither of which
+        # this prompt-building test cares about — it only reads structure_json.
+        template = Template.model_construct(
             name="Test Template",
-            structure_json='[{"section": "Intro", "duration": 5}]'
+            structure_json='[{"section": "Intro", "duration": 5}]',
         )
 
         # Execute
@@ -64,7 +66,7 @@ class TestScriptGenerator(unittest.TestCase):
         mock_generate.return_value = "I am not a JSON"
 
         request_data = AIScriptRequest(topic="Test", template_id=1)
-        template = Template(id=1, name="T", structure_json="[]")
+        template = Template.model_construct(name="T", structure_json="[]")
 
         generator = ScriptGenerator()
         

@@ -1,8 +1,10 @@
 """FastAPI application entry point — Phase 3 SaaS platform."""
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -55,6 +57,14 @@ async def on_startup():
 def on_shutdown():
     from .core.scheduler import stop_scheduler
     stop_scheduler()
+
+
+# ---------------------------------------------------------------------------
+# Static media — LocalStorage writes to backend/media and returns /media/<key>
+# ---------------------------------------------------------------------------
+MEDIA_DIR = Path(__file__).resolve().parents[1] / "media"
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/media", StaticFiles(directory=str(MEDIA_DIR)), name="media")
 
 
 # ---------------------------------------------------------------------------

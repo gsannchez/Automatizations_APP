@@ -4,6 +4,9 @@ from celery import Celery
 # Configuración de Redis (asumiendo localhost por defecto)
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
+# Key written by the worker heartbeat; read by services/health/celery_health.py
+WORKER_HEARTBEAT_KEY = "celery:worker:heartbeat"
+
 # Load all models for SQLAlchemy registry
 from app.models.user import User
 from app.models.channel import Channel

@@ -1,52 +1,72 @@
+"""Real Google Gemini client for script generation.
+
+Replaces the previous hardcoded mock. Validation is deferred to call time so that
+importing this module never fails when no API key is configured.
+"""
+import logging
 import os
+
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-# Cargar variables del .env
 load_dotenv()
 
-API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+logger = logging.getLogger(__name__)
 
-if not API_KEY:
-    raise ValueError("❌ No se encontró la variable GEMINI_API_KEY en .env")
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
-# Configurar cliente de Gemini
-genai.configure(api_key=API_KEY)
 
-def generate_gemini_prompt(prompt: str) -> str:
+class GeminiUnavailable(RuntimeError):
+    """Raised when Gemini cannot be used (no key, empty response, API error)."""
+
+
+def _resolve_api_key(api_key: str | None) -> str | None:
+    return api_key or os.getenv("GEMINI_API_KEY") or None
+
+
+def generate_gemini_prompt(
+    prompt: str,
+    *,
+    api_key: str | None = None,
+    model_name: str | None = None,
+    temperature: float = 0.9,
+) -> str:
+    """Send *prompt* to Gemini and return the raw text response.
+
+    Args:
+        prompt: The full instruction prompt.
+        api_key: Per-user key override; falls back to ``GEMINI_API_KEY`` env var.
+        model_name: Model override; falls back to ``GEMINI_MODEL`` env var.
+        temperature: Sampling temperature.
+
+    Raises:
+        GeminiUnavailable: If no key is configured, or the model returns nothing.
     """
-    Envía un prompt a Gemini y devuelve SIEMPRE una respuesta en texto plano
-    con MIME JSON garantizado.
-    """
+    resolved_key = _resolve_api_key(api_key)
+    if not resolved_key:
+        raise GeminiUnavailable("No GEMINI_API_KEY configured")
+
+    model = model_name or DEFAULT_MODEL
+    genai.configure(api_key=resolved_key)
+    generative_model = genai.GenerativeModel(model)
 
     try:
-        # MOCK RESPONSE PARA EVITAR RATE LIMIT DE GEMINI DURANTE PRUEBAS
-        import time
-        time.sleep(2) # Simular latencia de red
-        
-        mock_response = """
-        {
-          "title": "La Revolución de la IA",
-          "description": "Una mirada rápida al futuro de la inteligencia artificial.",
-          "scenes": [
-            {
-              "type": "intro",
-              "text": "Bienvenidos al futuro. La IA está cambiando todo.",
-              "duration": 5,
-              "image_prompt": "Futuristic glowing brain network digital art style"
-            },
-            {
-              "type": "main",
-              "text": "Desde automatización de tareas hasta asistencia médica, sus usos son infinitos.",
-              "duration": 5,
-              "image_prompt": "Robot doctor shaking hands with a human patient"
-            }
-          ]
-        }
-        """
-        
-        return mock_response.strip()
+        response = generative_model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=temperature,
+                response_mime_type="application/json",
+            ),
+        )
+    except Exception as exc:
+        # Older SDK/model combos reject response_mime_type — retry as plain text.
+        logger.warning("Gemini JSON-mode call failed (%s); retrying as plain text", exc)
+        response = generative_model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(temperature=temperature),
+        )
 
-    except Exception as e:
-        raise RuntimeError(f"Error al generar contenido con Gemini: {e}")
+    text = (getattr(response, "text", "") or "").strip()
+    if not text:
+        raise GeminiUnavailable("Gemini returned an empty response")
+    return text
