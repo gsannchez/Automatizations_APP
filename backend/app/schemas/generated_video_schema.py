@@ -1,5 +1,9 @@
-"""Generated video schemas with UUID v7 and computed progress."""
-from pydantic import BaseModel, computed_field
+"""Generated video schemas with UUID v7 and progress.
+
+``progress`` prefers the real ``video.progress`` column written by the pipeline,
+falling back to the legacy status-derived estimate for older rows.
+"""
+from pydantic import BaseModel, model_validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -32,20 +36,17 @@ class GeneratedVideoRead(BaseModel):
     error_step: Optional[str]
     created_at: datetime
     updated_at: datetime
-    
+    progress: Optional[int] = None
+
     # Legacy fields
     topic: Optional[str] = None
     channel_id: Optional[int] = None
-    
-    @computed_field
-    @property
-    def progress(self) -> int:
-        """Compute progress percentage from status.
-        
-        Returns:
-            int: Progress percentage (0-100)
-        """
-        return get_progress_from_status(self.status)
+
+    @model_validator(mode="after")
+    def _fill_progress(self) -> "GeneratedVideoRead":
+        if self.progress is None:
+            self.progress = get_progress_from_status(self.status)
+        return self
 
     class Config:
         from_attributes = True  # Pydantic v2 (was orm_mode in v1)
@@ -55,12 +56,13 @@ class GeneratedVideoStatus(BaseModel):
     """Lightweight schema for status polling."""
     id: UUID
     status: str
+    progress: Optional[int] = None
 
-    @computed_field
-    @property
-    def progress(self) -> int:
-        """Compute progress percentage from status."""
-        return get_progress_from_status(self.status)
+    @model_validator(mode="after")
+    def _fill_progress(self) -> "GeneratedVideoStatus":
+        if self.progress is None:
+            self.progress = get_progress_from_status(self.status)
+        return self
 
     class Config:
         from_attributes = True

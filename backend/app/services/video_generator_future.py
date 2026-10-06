@@ -402,6 +402,16 @@ class VideoGeneratorFactory:
             AIVideoBackend.VEO: VeoAdapter(),
         }
 
+        # Swap in the real, local-GPU SVD adapter when its dependencies are
+        # importable (diffusers + torch CUDA). Otherwise the stub stays and the
+        # pipeline falls back to the ffmpeg Ken Burns path.
+        try:
+            from .ai.video_generation.svd_adapter import SVDAdapter as RealSVDAdapter
+
+            self._adapters[AIVideoBackend.SVD] = RealSVDAdapter()
+        except Exception as exc:  # pragma: no cover - env dependent
+            logger.info("Real SVD adapter not registered (%s); using stub", exc)
+
     def get_adapter(self, backend: AIVideoBackend) -> BaseVideoGeneratorAdapter:
         """Retrieve adapter for the specified backend.
 
@@ -429,17 +439,30 @@ class VideoGeneratorFactory:
     ) -> Optional[BaseVideoGeneratorAdapter]:
         """Return the first available adapter that supports the requested mode.
 
-        Preference order: local GPU adapters first, then cloud APIs.
+        Preference order: local GPU adapters first, then cloud APIs. For
+        IMAGE_TO_VIDEO we prefer SVD (best local quality on 8-12 GB); for
+        TEXT_TO_VIDEO we prefer AnimateDiff.
         """
-        preference_order = [
-            AIVideoBackend.ANIMATE_DIFF,
-            AIVideoBackend.FLUX,
-            AIVideoBackend.SVD,
-            AIVideoBackend.COG_VIDEO,
-            AIVideoBackend.KLING,
-            AIVideoBackend.RUNWAY_GEN3,
-            AIVideoBackend.VEO,
-        ]
+        if mode == GenerationMode.IMAGE_TO_VIDEO:
+            preference_order = [
+                AIVideoBackend.SVD,
+                AIVideoBackend.COG_VIDEO,
+                AIVideoBackend.KLING,
+                AIVideoBackend.RUNWAY_GEN3,
+                AIVideoBackend.VEO,
+                AIVideoBackend.ANIMATE_DIFF,
+                AIVideoBackend.FLUX,
+            ]
+        else:
+            preference_order = [
+                AIVideoBackend.ANIMATE_DIFF,
+                AIVideoBackend.FLUX,
+                AIVideoBackend.COG_VIDEO,
+                AIVideoBackend.SVD,
+                AIVideoBackend.KLING,
+                AIVideoBackend.RUNWAY_GEN3,
+                AIVideoBackend.VEO,
+            ]
         for backend in preference_order:
             adapter = self._adapters.get(backend)
             if adapter and adapter.is_available() and mode in adapter.supports_modes:

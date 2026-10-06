@@ -17,10 +17,8 @@ from .image_cache import ImageCache
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CHECKPOINT = os.getenv(
-    "COMFYUI_CHECKPOINT",
-    "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
-)
+# Single source of truth: settings (which itself reads the .env / environment).
+DEFAULT_CHECKPOINT = settings.COMFYUI_CHECKPOINT
 
 
 class ComfyUIGenerator(BaseImageGenerator):

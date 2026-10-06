@@ -1,10 +1,25 @@
 """Video model with UUID v7 and storage abstraction."""
 from sqlmodel import SQLModel, Field, Column
-from sqlalchemy import String, Text
+from sqlalchemy import String, Text, Integer
+from sqlalchemy.dialects.postgresql import JSONB, ENUM as PGEnum
 from datetime import datetime
-from typing import Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 from app.utils.uuid_utils import generate_uuid7
+from app.models.enums import PipelineState
+
+# Re-exported so the many ``from ..models.generated_video import ... PipelineState``
+# call sites keep working unchanged.
+__all__ = ["GeneratedVideo", "PipelineState"]
+
+# PostgreSQL enum type backing ``pipeline_state``. ``create_type=False`` because the
+# type is created by Alembic migration ``ebe3bf76544b`` — we must not re-create it.
+pipeline_state_enum = PGEnum(
+    PipelineState,
+    name="pipelinestate",
+    create_type=False,
+    values_callable=lambda enum: [member.value for member in enum],
+)
 
 
 class GeneratedVideo(SQLModel, table=True):
@@ -70,6 +85,30 @@ class GeneratedVideo(SQLModel, table=True):
         nullable=False
     )
     
+    # ------------------------------------------------------------------
+    # Pipeline state (persisted so the workflow can resume idempotently)
+    # ------------------------------------------------------------------
+    pipeline_state: PipelineState = Field(
+        default=PipelineState.QUEUED,
+        sa_column=Column(
+            pipeline_state_enum,
+            nullable=False,
+            server_default=PipelineState.QUEUED.value,
+        ),
+    )
+    progress: int = Field(
+        default=0,
+        sa_column=Column(Integer, nullable=False, server_default="0"),
+    )
+    scenes_data: Optional[List[Dict[str, Any]]] = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+    )
+    scene_progress: Optional[Dict[str, Any]] = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+    )
+
     # Legacy fields for backward compatibility during migration
     channel_id: Optional[int] = Field(default=None, nullable=True)
     topic: Optional[str] = Field(default=None, nullable=True)

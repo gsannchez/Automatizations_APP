@@ -12,15 +12,17 @@ class TestVideoAssembly(unittest.TestCase):
 
     @patch('app.services.tts_service.gTTS')
     def test_tts_generation(self, mock_gtts):
-        # Mock gTTS save
+        # TTSService streams the mp3 into a buffer (write_to_fp), it does not
+        # call gTTS.save(); the buffer is then handed to storage.
         mock_instance = MagicMock()
         mock_gtts.return_value = mock_instance
-        
+
         service = TTSService()
         path = service.generate_audio("Hello world", "test_audio.mp3")
-        
-        self.assertTrue(os.path.exists(path) or path.endswith("test_audio.mp3"))
-        mock_instance.save.assert_called_once()
+
+        self.assertTrue(path.endswith("test_audio.mp3"))
+        mock_instance.write_to_fp.assert_called_once()
+        mock_gtts.assert_called_once_with(text="Hello world", lang="es", slow=False)
 
     @patch('app.services.video_generator.subprocess.run')
     @patch('app.services.video_generator.generate_images_for_scenes')
