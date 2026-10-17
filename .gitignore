@@ -88,7 +88,6 @@ resources/
 Thumbs.db
 
 # Docker
-.dockerignore
 
 # Tests
 .pytest_cache/
@@ -97,3 +96,5 @@ htmlcov/
 
 # Deployment
 deployment/k8s/
+!.env.example
+!backend/.env.example
